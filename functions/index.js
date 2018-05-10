@@ -57,9 +57,14 @@ exports.kmeans = functions.https.onRequest(({body: {clusters, matrix}}, res) => 
 
   const clusterer = Clusterer.getInstance(myData, k);
   const clusteredData = clusterer.getClusteredData();
-  res.status(200).json(clusteredData.map((cluster) =>
-     cluster.map((clusteredObject) => matrix.find((object) => _.isEqual(object.value, clusteredObject)).id)
-  ));
+  res.status(200).json(clusteredData.map((cluster) => {
+    const alreadyUsedIds = [];
+    return cluster.map((clusteredObject) => {
+      const nextId = matrix.find((object) => _.isEqual(object.value, clusteredObject) && !alreadyUsedIds.find((id) => id === object.id)).id;
+      alreadyUsedIds.push(nextId);
+      return nextId
+    })
+  }));
 });
 
 const countShortestPath = (matrix = []) => {
